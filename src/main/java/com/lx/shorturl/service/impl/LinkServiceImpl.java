@@ -1,5 +1,6 @@
 package com.lx.shorturl.service.impl;
 
+import com.google.gson.Gson;
 import com.lx.shorturl.dao.LinkMapper;
 import com.lx.shorturl.entity.Link;
 import com.lx.shorturl.service.LinkService;
@@ -10,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * @Author: lx
@@ -33,9 +36,19 @@ public class LinkServiceImpl implements LinkService {
         String longUrl = link.getLongUrl();
         String shortCode = this.gererateShortCode(longUrl);
         System.out.println(longUrl);
+        //判断是否已经是在数据库中
         Link link1 = linkMapper.findByShortCode(shortCode);
+
+
         if (link1 == null) {
+            HashMap<String, String> map = new HashMap<>();
+            Gson gson = new Gson();
             link.setShortCode(shortCode);
+
+            Date date = new Date();
+            String strDateFormat = "yyyyMMddHHmm";
+            SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
+            String format = sdf.format(date);
             link.setCreateTime(new Date());
             link.setUpdateTime(new Date());
             if (link.getExpireTime() == null){
@@ -45,7 +58,9 @@ public class LinkServiceImpl implements LinkService {
             link.setStatus(1);
             link.setShortUrl(host + shortCode);
             linkMapper.insert(link);
-            redisService.set(shortCode, link);
+            String s = gson.toJson(link);
+            map.put(shortCode,s);
+            redisService.hset(format,map);
         } else {
             link = link1;
         }

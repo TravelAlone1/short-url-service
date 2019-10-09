@@ -46,6 +46,12 @@ public class ShorturlApplicationTests {
         System.out.println(user1);
     }
 
+    @Test
+    public void testHash(){
+        String s = redisService.hget("201909282234","j6RRze");
+        System.out.println(s);
+    }
+
 
 
 
